@@ -55,7 +55,6 @@ begin
       ('periods','timetable:read','timetable:write'),
       ('timetable_slots','timetable:read','timetable:write'),
       ('activities','activities:read','activities:write'),
-      ('activity_attendance','activities:read','activities:write'),
       ('observations','observations:read','observations:write'),
       ('report_templates','reports:read','branding:write'),
       ('message_log','reports:read','communication:send'),
@@ -185,10 +184,16 @@ create policy oi_all on public.observation_items for all to authenticated
   using (exists (select 1 from public.observations o where o.id = observation_id and public.in_my_school(o.school_id) and public.has_perm('observations:read')))
   with check (exists (select 1 from public.observations o where o.id = observation_id and public.in_my_school(o.school_id) and public.has_perm('observations:write')));
 
--- activity_participants → via activity
+-- activity_participants / activity_attendance → via activity (no own school_id)
 alter table public.activity_participants enable row level security;
 drop policy if exists ap_all on public.activity_participants;
 create policy ap_all on public.activity_participants for all to authenticated
+  using (exists (select 1 from public.activities a where a.id = activity_id and public.in_my_school(a.school_id) and public.has_perm('activities:read')))
+  with check (exists (select 1 from public.activities a where a.id = activity_id and public.in_my_school(a.school_id) and public.has_perm('activities:write')));
+
+alter table public.activity_attendance enable row level security;
+drop policy if exists aa_all on public.activity_attendance;
+create policy aa_all on public.activity_attendance for all to authenticated
   using (exists (select 1 from public.activities a where a.id = activity_id and public.in_my_school(a.school_id) and public.has_perm('activities:read')))
   with check (exists (select 1 from public.activities a where a.id = activity_id and public.in_my_school(a.school_id) and public.has_perm('activities:write')));
 
