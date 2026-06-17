@@ -1,0 +1,14 @@
+{
+  "name": "مدرستي — نظام إدارة المدارس",
+  "short_name": "مدرستي",
+  "description": "Madrasati — Enterprise School ERP",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16305b",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

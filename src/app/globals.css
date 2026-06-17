@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Madrasati ERP — design tokens
+   Default brand: Navy Blue (primary) · Green (success/secondary) · White.
+   The School Branding module overrides --primary / --secondary / --ring at
+   runtime by injecting inline CSS variables on <html>, so a school can
+   re-theme the whole app from its logo colors without a rebuild.
+   ============================================================ */
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    --background: 210 40% 98%;
+    --foreground: 218 35% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 218 35% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 218 35% 14%;
+
+    /* Navy */
+    --primary: 218 64% 23%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Light slate — secondary surfaces/buttons */
+    --secondary: 215 28% 94%;
+    --secondary-foreground: 218 45% 22%;
+
+    /* Green — success states, positive behavior, "present" */
+    --success: 152 54% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 30 60% 15%;
+
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --muted: 215 25% 95%;
+    --muted-foreground: 218 14% 42%;
+
+    /* Green-tinted accents/highlights */
+    --accent: 152 45% 94%;
+    --accent-foreground: 152 60% 22%;
+
+    --border: 215 22% 88%;
+    --input: 215 22% 88%;
+    --ring: 218 64% 30%;
+
+    /* Sidebar — deep navy chrome */
+    --sidebar: 219 52% 16%;
+    --sidebar-foreground: 210 30% 88%;
+    --sidebar-accent: 152 54% 42%;
+
+    /* Chart palette (dashboards) */
+    --chart-1: 218 64% 33%;
+    --chart-2: 152 54% 42%;
+    --chart-3: 38 92% 55%;
+    --chart-4: 256 50% 55%;
+    --chart-5: 199 75% 45%;
+  }
+
+  .dark {
+    --background: 219 41% 9%;
+    --foreground: 210 30% 92%;
+    --card: 219 38% 13%;
+    --card-foreground: 210 30% 92%;
+    --popover: 219 38% 13%;
+    --popover-foreground: 210 30% 92%;
+    --primary: 210 80% 62%;
+    --primary-foreground: 219 50% 12%;
+    --secondary: 217 25% 22%;
+    --secondary-foreground: 210 30% 92%;
+    --success: 152 48% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 90% 58%;
+    --warning-foreground: 30 60% 12%;
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --muted: 217 25% 20%;
+    --muted-foreground: 215 18% 62%;
+    --accent: 217 25% 22%;
+    --accent-foreground: 210 30% 92%;
+    --border: 217 25% 24%;
+    --input: 217 25% 24%;
+    --ring: 210 80% 62%;
+    --sidebar: 219 45% 11%;
+    --sidebar-foreground: 210 25% 82%;
+    --sidebar-accent: 152 48% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* RTL/LTR: rely on logical properties + dir attribute set on <html>.
+     Numerals stay Western (Arabic forms render fine); flip only layout. */
+  [dir="rtl"] {
+    direction: rtl;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbars on the collapsible sidebar nav while keeping scroll. */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Print: report cards / certificates render on white, chrome hidden. */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    body {
+      background: #fff;
+    }
+  }
+}

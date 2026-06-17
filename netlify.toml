@@ -1,0 +1,10 @@
+# Madrasati ERP — Netlify deploy (Next.js runtime)
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NODE_VERSION = "20"
