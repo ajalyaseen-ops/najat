@@ -16,11 +16,23 @@ const cairo = Cairo({
 export const metadata: Metadata = {
   title: "مدرستي — نظام إدارة المدارس",
   description: "Madrasati — Enterprise School ERP & Academic Management System",
+  applicationName: "مدرستي",
   manifest: "/manifest.json",
+  // Makes "Add to Home Screen" on iOS open full-screen (no Safari chrome).
+  appleWebApp: {
+    capable: true,
+    title: "مدرستي",
+    statusBarStyle: "default",
+  },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
   themeColor: "#16305b",
+  width: "device-width",
+  initialScale: 1,
+  // Extend under the notch / home indicator in standalone mode.
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

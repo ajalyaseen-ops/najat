@@ -35,7 +35,7 @@ export function Topbar({
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur md:px-6">
+    <header className="safe-top sticky top-0 z-30 flex min-h-[4rem] items-center gap-3 border-b bg-background/80 px-4 backdrop-blur md:px-6">
       {/* Mobile nav trigger */}
       <Dialog>
         <DialogTrigger asChild>
@@ -43,7 +43,7 @@ export function Topbar({
             <Menu className="h-5 w-5" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="start-0 top-0 h-screen max-w-[280px] translate-x-0 translate-y-0 rounded-none rtl:translate-x-0 bg-sidebar text-sidebar-foreground">
+        <DialogContent className="safe-top start-0 top-0 h-screen max-w-[280px] translate-x-0 translate-y-0 overflow-y-auto rounded-none rtl:translate-x-0 bg-sidebar text-sidebar-foreground">
           <DialogTitle className="flex items-center gap-2 text-white">
             <GraduationCap className="h-5 w-5" /> {schoolName}
           </DialogTitle>

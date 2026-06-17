@@ -109,6 +109,27 @@
   [dir="rtl"] {
     direction: rtl;
   }
+
+  /* ---- Mobile / PWA polish ---- */
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* App-like: no blue tap flash on touch */
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Prevent iOS Safari from zooming in when focusing a field (needs >=16px). */
+  @media (max-width: 768px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+  /* In installed (standalone) mode, give the app an app-like scroll feel. */
+  @media (display-mode: standalone) {
+    body {
+      overscroll-behavior-y: none;
+    }
+  }
 }
 
 @layer utilities {
@@ -119,6 +140,18 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Safe-area insets (notch / home indicator) for fixed chrome in standalone. */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* Momentum scrolling for wide tables on touch devices. */
+  .touch-scroll {
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Print: report cards / certificates render on white, chrome hidden. */

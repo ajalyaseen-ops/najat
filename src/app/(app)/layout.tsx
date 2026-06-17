@@ -33,7 +33,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           avatarUrl={profile.avatarUrl}
           schoolName={schoolName}
         />
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+        <main className="safe-bottom flex-1 p-4 md:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

@@ -96,9 +96,9 @@ export function StudentsTable({
           <TableHeader>
             <TableRow>
               <TableHead>{t("nameAr")}</TableHead>
-              <TableHead>{t("ministryNumber")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("ministryNumber")}</TableHead>
               <TableHead>{t("class")}</TableHead>
-              <TableHead>{t("mobile")}</TableHead>
+              <TableHead className="hidden lg:table-cell">{t("mobile")}</TableHead>
               <TableHead>{tc("status")}</TableHead>
               <TableHead className="w-12" />
             </TableRow>
@@ -116,9 +116,9 @@ export function StudentsTable({
                 <TableCell className="font-medium">
                   {locale === "en" && r.name_en ? r.name_en : r.name_ar}
                 </TableCell>
-                <TableCell dir="ltr" className="text-start">{r.ministry_no ?? "—"}</TableCell>
+                <TableCell dir="ltr" className="hidden text-start md:table-cell">{r.ministry_no ?? "—"}</TableCell>
                 <TableCell>{r.className ?? "—"}</TableCell>
-                <TableCell dir="ltr" className="text-start">{r.guardian_mobile ?? "—"}</TableCell>
+                <TableCell dir="ltr" className="hidden text-start lg:table-cell">{r.guardian_mobile ?? "—"}</TableCell>
                 <TableCell>
                   <Badge variant={STATUS_VARIANT[r.status] ?? "secondary"}>
                     {t(
