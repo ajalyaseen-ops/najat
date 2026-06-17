@@ -68,10 +68,10 @@ export function AuditLogTable({ rows }: { rows: AuditLogRow[] }) {
           <TableHeader>
             <TableRow>
               <TableHead>التاريخ والوقت</TableHead>
-              <TableHead>المستخدم</TableHead>
+              <TableHead className="hidden md:table-cell">المستخدم</TableHead>
               <TableHead>الإجراء</TableHead>
               <TableHead>الجدول</TableHead>
-              <TableHead>المعرّف</TableHead>
+              <TableHead className="hidden lg:table-cell">المعرّف</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -96,7 +96,7 @@ export function AuditLogTable({ rows }: { rows: AuditLogRow[] }) {
                 </TableCell>
 
                 {/* User email */}
-                <TableCell className="text-sm" dir="ltr">
+                <TableCell className="hidden text-sm md:table-cell" dir="ltr">
                   {r.user_email ?? "—"}
                 </TableCell>
 
@@ -113,7 +113,7 @@ export function AuditLogTable({ rows }: { rows: AuditLogRow[] }) {
                 </TableCell>
 
                 {/* Entity ID */}
-                <TableCell className="font-mono text-xs text-muted-foreground" dir="ltr">
+                <TableCell className="hidden font-mono text-xs text-muted-foreground lg:table-cell" dir="ltr">
                   {r.entity_id ?? "—"}
                 </TableCell>
               </TableRow>

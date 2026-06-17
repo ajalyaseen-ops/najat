@@ -111,9 +111,9 @@ export function AnnouncementsTable({
             <TableRow>
               <TableHead>عنوان الإعلان</TableHead>
               <TableHead>الجمهور</TableHead>
-              <TableHead>المرسِل</TableHead>
-              <TableHead>تاريخ النشر</TableHead>
-              <TableHead>تاريخ الإنشاء</TableHead>
+              <TableHead className="hidden md:table-cell">المرسِل</TableHead>
+              <TableHead className="hidden md:table-cell">تاريخ النشر</TableHead>
+              <TableHead className="hidden lg:table-cell">تاريخ الإنشاء</TableHead>
               {canWrite && <TableHead className="w-12" />}
             </TableRow>
           </TableHeader>
@@ -141,9 +141,9 @@ export function AnnouncementsTable({
                     {AUDIENCE_LABEL[r.audience] ?? r.audience}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-muted-foreground">{r.creator_name ?? "—"}</TableCell>
-                <TableCell className="text-sm">{formatDateTime(r.published_at)}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="hidden md:table-cell text-muted-foreground">{r.creator_name ?? "—"}</TableCell>
+                <TableCell className="hidden md:table-cell text-sm">{formatDateTime(r.published_at)}</TableCell>
+                <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                   {formatDateTime(r.created_at)}
                 </TableCell>
                 {canWrite && (

@@ -521,7 +521,7 @@ export function GradesClient({
                     </div>
                   </TableHead>
                 ))}
-                <TableHead className="min-w-[90px] text-center">
+                <TableHead className="sticky end-0 z-10 min-w-[90px] bg-card border-s text-center">
                   النسبة
                   {hasWeights && (
                     <span className="block text-xs font-normal text-muted-foreground">
@@ -568,7 +568,7 @@ export function GradesClient({
                           />
                         </TableCell>
                       ))}
-                      <TableCell className="text-center">
+                      <TableCell className="sticky end-0 z-10 bg-card border-s text-center">
                         <PctBadge pct={pct} />
                       </TableCell>
                     </TableRow>

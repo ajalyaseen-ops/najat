@@ -191,12 +191,12 @@ export function FinancePanel({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>رقم الفاتورة</TableHead>
+                  <TableHead className="hidden md:table-cell">رقم الفاتورة</TableHead>
                   <TableHead>الطالب</TableHead>
-                  <TableHead>العام الدراسي</TableHead>
-                  <TableHead>الإجمالي</TableHead>
-                  <TableHead>الخصم</TableHead>
-                  <TableHead>تاريخ الاستحقاق</TableHead>
+                  <TableHead className="hidden lg:table-cell">العام الدراسي</TableHead>
+                  <TableHead className="hidden md:table-cell">الإجمالي</TableHead>
+                  <TableHead className="hidden lg:table-cell">الخصم</TableHead>
+                  <TableHead className="hidden lg:table-cell">تاريخ الاستحقاق</TableHead>
                   <TableHead>الحالة</TableHead>
                 </TableRow>
               </TableHeader>
@@ -213,20 +213,20 @@ export function FinancePanel({
                 )}
                 {filteredInvoices.map((inv) => (
                   <TableRow key={inv.id}>
-                    <TableCell dir="ltr" className="text-start font-mono text-sm">
+                    <TableCell dir="ltr" className="hidden text-start font-mono text-sm md:table-cell">
                       {inv.number ?? "—"}
                     </TableCell>
                     <TableCell className="font-medium">
                       {inv.students?.name_ar ?? "—"}
                     </TableCell>
-                    <TableCell>{inv.academic_years?.name ?? "—"}</TableCell>
-                    <TableCell dir="ltr" className="text-start">
+                    <TableCell className="hidden lg:table-cell">{inv.academic_years?.name ?? "—"}</TableCell>
+                    <TableCell dir="ltr" className="hidden text-start md:table-cell">
                       {formatAmount(inv.total)}
                     </TableCell>
-                    <TableCell dir="ltr" className="text-start">
+                    <TableCell dir="ltr" className="hidden text-start lg:table-cell">
                       {inv.discount > 0 ? formatAmount(inv.discount) : "—"}
                     </TableCell>
-                    <TableCell dir="ltr" className="text-start">
+                    <TableCell dir="ltr" className="hidden text-start lg:table-cell">
                       {inv.due_date ?? "—"}
                     </TableCell>
                     <TableCell>
@@ -271,8 +271,8 @@ export function FinancePanel({
               <TableHeader>
                 <TableRow>
                   <TableHead>الاسم</TableHead>
-                  <TableHead>المرحلة الدراسية</TableHead>
-                  <TableHead>العام الدراسي</TableHead>
+                  <TableHead className="hidden md:table-cell">المرحلة الدراسية</TableHead>
+                  <TableHead className="hidden lg:table-cell">العام الدراسي</TableHead>
                   <TableHead>المبلغ (د.ك)</TableHead>
                   {canWrite && <TableHead className="w-12" />}
                 </TableRow>
@@ -291,8 +291,8 @@ export function FinancePanel({
                 {filteredFees.map((f) => (
                   <TableRow key={f.id}>
                     <TableCell className="font-medium">{f.name}</TableCell>
-                    <TableCell>{f.grade_levels?.name ?? "جميع المراحل"}</TableCell>
-                    <TableCell>{f.academic_years?.name ?? "—"}</TableCell>
+                    <TableCell className="hidden md:table-cell">{f.grade_levels?.name ?? "جميع المراحل"}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{f.academic_years?.name ?? "—"}</TableCell>
                     <TableCell dir="ltr" className="text-start font-mono">
                       {formatAmount(f.amount)}
                     </TableCell>

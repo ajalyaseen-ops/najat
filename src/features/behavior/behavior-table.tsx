@@ -149,11 +149,11 @@ export function BehaviorTable({
             <TableRow>
               <TableHead>الطالب</TableHead>
               <TableHead>النوع</TableHead>
-              <TableHead>الفئة</TableHead>
-              <TableHead>الوصف</TableHead>
-              <TableHead>الإجراء المتخذ</TableHead>
-              <TableHead>النقاط</TableHead>
-              <TableHead>التاريخ</TableHead>
+              <TableHead className="hidden md:table-cell">الفئة</TableHead>
+              <TableHead className="hidden lg:table-cell">الوصف</TableHead>
+              <TableHead className="hidden lg:table-cell">الإجراء المتخذ</TableHead>
+              <TableHead className="hidden md:table-cell">النقاط</TableHead>
+              <TableHead className="hidden lg:table-cell">التاريخ</TableHead>
               {canWrite && <TableHead className="w-12" />}
             </TableRow>
           </TableHeader>
@@ -190,14 +190,14 @@ export function BehaviorTable({
                       {r.kind === "positive" ? "إيجابي" : "سلبي"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{r.category}</TableCell>
-                  <TableCell className="max-w-[200px] truncate text-muted-foreground">
+                  <TableCell className="hidden md:table-cell">{r.category}</TableCell>
+                  <TableCell className="hidden lg:table-cell max-w-[200px] truncate text-muted-foreground">
                     {r.description ?? "—"}
                   </TableCell>
-                  <TableCell className="max-w-[180px] truncate text-muted-foreground">
+                  <TableCell className="hidden lg:table-cell max-w-[180px] truncate text-muted-foreground">
                     {r.action_taken ?? "—"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <span
                       className={
                         r.points > 0
@@ -210,7 +210,7 @@ export function BehaviorTable({
                       {r.points > 0 ? `+${r.points}` : r.points}
                     </span>
                   </TableCell>
-                  <TableCell dir="ltr" className="text-start text-sm">
+                  <TableCell dir="ltr" className="hidden lg:table-cell text-start text-sm">
                     {r.date}
                   </TableCell>
                   {canWrite && (

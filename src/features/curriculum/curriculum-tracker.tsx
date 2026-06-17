@@ -195,7 +195,7 @@ export function CurriculumTracker({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-3">
           {/* Plan selector */}
-          <div className="w-64">
+          <div className="w-full sm:w-64">
             <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
               <SelectTrigger>
                 <SelectValue placeholder="اختر خطة المنهج" />
@@ -210,7 +210,7 @@ export function CurriculumTracker({
             </Select>
           </div>
           {/* Class selector */}
-          <div className="w-44">
+          <div className="w-full sm:w-44">
             <Select value={selectedClassId} onValueChange={setSelectedClassId}>
               <SelectTrigger>
                 <SelectValue placeholder="اختر الفصل" />
@@ -295,7 +295,7 @@ export function CurriculumTracker({
                 <button
                   type="button"
                   onClick={() => toggleUnit(unit.id)}
-                  className="flex w-full items-center justify-between px-4 py-3 text-start hover:bg-muted/50 transition-colors"
+                  className="flex w-full flex-wrap items-center justify-between gap-2 px-4 py-3 text-start hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     {isExpanded ? (
@@ -308,7 +308,7 @@ export function CurriculumTracker({
                       {unitCompleted}/{unitLessons.length}
                     </Badge>
                   </div>
-                  <div className="w-36">
+                  <div className="w-28 md:w-36">
                     <ProgressBar pct={unitPct} />
                   </div>
                 </button>

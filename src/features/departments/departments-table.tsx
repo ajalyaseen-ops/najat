@@ -135,9 +135,9 @@ export function DepartmentsTable({
           <TableHeader>
             <TableRow>
               <TableHead>اسم القسم</TableHead>
-              <TableHead>رئيس القسم</TableHead>
-              <TableHead className="text-center">أعضاء الهيئة</TableHead>
-              <TableHead className="text-center">المواد</TableHead>
+              <TableHead className="hidden md:table-cell">رئيس القسم</TableHead>
+              <TableHead className="hidden md:table-cell text-center">أعضاء الهيئة</TableHead>
+              <TableHead className="hidden lg:table-cell text-center">المواد</TableHead>
               <TableHead>الحالة</TableHead>
               <TableHead className="w-12" />
             </TableRow>
@@ -160,11 +160,11 @@ export function DepartmentsTable({
                     </span>
                   )}
                 </TableCell>
-                <TableCell>{r.headName ?? "—"}</TableCell>
-                <TableCell className="text-center">
+                <TableCell className="hidden md:table-cell">{r.headName ?? "—"}</TableCell>
+                <TableCell className="hidden md:table-cell text-center">
                   <Badge variant="secondary">{r.staffCount}</Badge>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="hidden lg:table-cell text-center">
                   <Badge variant="secondary">{r.subjectCount}</Badge>
                 </TableCell>
                 <TableCell>

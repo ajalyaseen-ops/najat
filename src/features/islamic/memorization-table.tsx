@@ -267,11 +267,11 @@ export function MemorizationTable({
             <TableRow>
               <TableHead>الطالب</TableHead>
               <TableHead>السورة</TableHead>
-              <TableHead>الآيات</TableHead>
+              <TableHead className="hidden lg:table-cell">الآيات</TableHead>
               <TableHead>الحالة</TableHead>
-              <TableHead>الدرجة</TableHead>
-              <TableHead>التجويد</TableHead>
-              <TableHead>تاريخ التقييم</TableHead>
+              <TableHead className="hidden md:table-cell">الدرجة</TableHead>
+              <TableHead className="hidden md:table-cell">التجويد</TableHead>
+              <TableHead className="hidden lg:table-cell">تاريخ التقييم</TableHead>
               {canWrite && <TableHead className="w-12" />}
             </TableRow>
           </TableHeader>
@@ -292,7 +292,7 @@ export function MemorizationTable({
                     {r.surah_number}. {r.surah_name_ar}
                   </span>
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden lg:table-cell text-muted-foreground">
                   {r.from_ayah && r.to_ayah
                     ? `${r.from_ayah} – ${r.to_ayah}`
                     : r.from_ayah
@@ -304,7 +304,7 @@ export function MemorizationTable({
                     {STATUS_LABEL[r.status] ?? r.status}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   {r.score !== null ? (
                     <span className={r.score >= 90 ? "text-success font-semibold" : ""}>
                       {r.score}
@@ -313,7 +313,7 @@ export function MemorizationTable({
                     "—"
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   {r.tajweed_score !== null ? (
                     <span className={r.tajweed_score >= 90 ? "text-success font-semibold" : ""}>
                       {r.tajweed_score}
@@ -322,7 +322,7 @@ export function MemorizationTable({
                     "—"
                   )}
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden lg:table-cell text-muted-foreground">
                   {r.assessed_at
                     ? new Date(r.assessed_at).toLocaleDateString("ar-KW")
                     : "—"}

@@ -131,10 +131,10 @@ export function ObservationsTable({
           <TableHeader>
             <TableRow>
               <TableHead>المعلم</TableHead>
-              <TableHead>التاريخ</TableHead>
-              <TableHead>الفصل</TableHead>
-              <TableHead>المادة</TableHead>
-              <TableHead>التقييم</TableHead>
+              <TableHead className="hidden md:table-cell">التاريخ</TableHead>
+              <TableHead className="hidden md:table-cell">الفصل</TableHead>
+              <TableHead className="hidden lg:table-cell">المادة</TableHead>
+              <TableHead className="hidden lg:table-cell">التقييم</TableHead>
               <TableHead>الحالة</TableHead>
               <TableHead className="w-12" />
             </TableRow>
@@ -155,12 +155,12 @@ export function ObservationsTable({
                 <TableCell className="font-medium">
                   {r.teacherName ?? "—"}
                 </TableCell>
-                <TableCell dir="ltr" className="text-start">
+                <TableCell dir="ltr" className="hidden text-start md:table-cell">
                   {r.date}
                 </TableCell>
-                <TableCell>{r.className ?? "—"}</TableCell>
-                <TableCell>{r.subjectName ?? "—"}</TableCell>
-                <TableCell dir="ltr" className="text-start">
+                <TableCell className="hidden md:table-cell">{r.className ?? "—"}</TableCell>
+                <TableCell className="hidden lg:table-cell">{r.subjectName ?? "—"}</TableCell>
+                <TableCell dir="ltr" className="hidden text-start lg:table-cell">
                   {r.overall_score != null ? r.overall_score : "—"}
                 </TableCell>
                 <TableCell>

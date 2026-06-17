@@ -163,7 +163,7 @@ export function UsersTable({
           <TableHeader>
             <TableRow>
               <TableHead>الاسم الكامل</TableHead>
-              <TableHead>البريد الإلكتروني</TableHead>
+              <TableHead className="hidden md:table-cell">البريد الإلكتروني</TableHead>
               <TableHead>الدور</TableHead>
               {canWrite && <TableHead className="w-12" />}
             </TableRow>
@@ -179,7 +179,7 @@ export function UsersTable({
             {filtered.map((r) => (
               <TableRow key={r.id}>
                 <TableCell className="font-medium">{r.full_name ?? "—"}</TableCell>
-                <TableCell dir="ltr" className="text-start text-muted-foreground">
+                <TableCell dir="ltr" className="hidden text-start text-muted-foreground md:table-cell">
                   {r.email ?? "—"}
                 </TableCell>
                 <TableCell>

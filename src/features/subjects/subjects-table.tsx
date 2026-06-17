@@ -87,9 +87,9 @@ export function SubjectsTable({
           <TableHeader>
             <TableRow>
               <TableHead>اسم المادة</TableHead>
-              <TableHead>الرمز</TableHead>
-              <TableHead>القسم</TableHead>
-              <TableHead>الحصص الأسبوعية</TableHead>
+              <TableHead className="hidden md:table-cell">الرمز</TableHead>
+              <TableHead className="hidden md:table-cell">القسم</TableHead>
+              <TableHead className="hidden lg:table-cell">الحصص الأسبوعية</TableHead>
               {canWrite && <TableHead className="w-12" />}
             </TableRow>
           </TableHeader>
@@ -109,17 +109,17 @@ export function SubjectsTable({
                     <span className="ms-2 text-xs text-muted-foreground">{r.name_en}</span>
                   )}
                 </TableCell>
-                <TableCell dir="ltr" className="text-start font-mono text-sm">
+                <TableCell dir="ltr" className="hidden text-start font-mono text-sm md:table-cell">
                   {r.code}
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   {r.departmentName ? (
                     <Badge variant="secondary">{r.departmentName}</Badge>
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
-                <TableCell dir="ltr" className="text-start">
+                <TableCell dir="ltr" className="hidden text-start lg:table-cell">
                   {r.weekly_periods}
                 </TableCell>
                 {canWrite && (

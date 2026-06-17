@@ -102,11 +102,11 @@ export function TeachersTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t("employeeId")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("employeeId")}</TableHead>
               <TableHead>الاسم</TableHead>
-              <TableHead>{t("department")}</TableHead>
-              <TableHead>{t("position")}</TableHead>
-              <TableHead>
+              <TableHead className="hidden md:table-cell">{t("department")}</TableHead>
+              <TableHead className="hidden lg:table-cell">{t("position")}</TableHead>
+              <TableHead className="hidden lg:table-cell">
                 <span className="flex items-center gap-1">
                   <BookOpen className="h-3.5 w-3.5" />
                   {t("teachingLoad")}
@@ -126,7 +126,7 @@ export function TeachersTable({
             )}
             {filtered.map((r) => (
               <TableRow key={r.id}>
-                <TableCell dir="ltr" className="text-start font-mono text-sm">
+                <TableCell dir="ltr" className="hidden text-start font-mono text-sm md:table-cell">
                   {r.employee_no ?? "—"}
                 </TableCell>
                 <TableCell className="font-medium">
@@ -137,9 +137,9 @@ export function TeachersTable({
                     </div>
                   )}
                 </TableCell>
-                <TableCell>{r.departmentName ?? "—"}</TableCell>
-                <TableCell>{r.position ?? "—"}</TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">{r.departmentName ?? "—"}</TableCell>
+                <TableCell className="hidden lg:table-cell">{r.position ?? "—"}</TableCell>
+                <TableCell className="hidden lg:table-cell">
                   {r.teachingLoad > 0 ? (
                     <Badge variant="secondary">
                       {r.teachingLoad} {r.teachingLoad === 1 ? "تكليف" : "تكليفات"}

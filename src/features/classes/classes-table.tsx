@@ -106,10 +106,10 @@ export function ClassesTable({
           <TableHeader>
             <TableRow>
               <TableHead>اسم الفصل</TableHead>
-              <TableHead>الصف الدراسي</TableHead>
-              <TableHead>رائد الفصل</TableHead>
-              <TableHead className="text-center">عدد الطلاب</TableHead>
-              <TableHead className="text-center">السعة</TableHead>
+              <TableHead className="hidden md:table-cell">الصف الدراسي</TableHead>
+              <TableHead className="hidden lg:table-cell">رائد الفصل</TableHead>
+              <TableHead className="hidden md:table-cell text-center">عدد الطلاب</TableHead>
+              <TableHead className="hidden lg:table-cell text-center">السعة</TableHead>
               <TableHead>الحالة</TableHead>
               <TableHead className="w-12" />
             </TableRow>
@@ -125,10 +125,10 @@ export function ClassesTable({
             {filtered.map((r) => (
               <TableRow key={r.id}>
                 <TableCell className="font-medium">{r.name}</TableCell>
-                <TableCell>{r.gradeLevelName ?? "—"}</TableCell>
-                <TableCell>{r.teacherName ?? "—"}</TableCell>
-                <TableCell className="text-center">{r.student_count}</TableCell>
-                <TableCell className="text-center">{r.capacity}</TableCell>
+                <TableCell className="hidden md:table-cell">{r.gradeLevelName ?? "—"}</TableCell>
+                <TableCell className="hidden lg:table-cell">{r.teacherName ?? "—"}</TableCell>
+                <TableCell className="hidden md:table-cell text-center">{r.student_count}</TableCell>
+                <TableCell className="hidden lg:table-cell text-center">{r.capacity}</TableCell>
                 <TableCell>
                   <Badge variant={STATUS_VARIANT[r.status] ?? "secondary"}>
                     {STATUS_LABEL[r.status] ?? r.status}
