@@ -72,7 +72,8 @@
       "operations": "العمليات اليومية",
       "insights": "التقارير والتحليلات",
       "administration": "الإدارة"
-    }
+    },
+    "staffing": "خطة النصاب"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -253,5 +254,44 @@
     "label": "اللغة",
     "ar": "العربية",
     "en": "English"
+  },
+  "staffing": {
+    "title": "خطة النصاب",
+    "subtitle": "مقترح الخطة المستهدفة لميزانية المدرسين والفصول",
+    "department": "القسم",
+    "year": "العام الدراسي",
+    "teacherCount": "عدد المدرسين",
+    "nisab": "نصاب المدرس",
+    "periodCount": "عدد الحصص",
+    "classCount": "عدد الفصول",
+    "teacher": "اسم المدرس",
+    "total": "إجمالي الحصص",
+    "notes": "ملاحظات",
+    "perClass": "حصص الفصل",
+    "exempt": "حصص الإشراف/الإعفاء",
+    "load": "العبء",
+    "saved": "تم الحفظ",
+    "saveError": "تعذّر الحفظ",
+    "forbidden": "غير مصرّح",
+    "noDepartments": "لا توجد أقسام. يُرجى إضافة الأقسام أولاً.",
+    "noTeachers": "لا يوجد مدرسون في هذا القسم بعد.",
+    "coverageOk": "مكتمل",
+    "coverageOver": "زائد",
+    "coverageUnder": "ناقص",
+    "loadOk": "مطابق للنصاب",
+    "loadOver": "أعلى من النصاب",
+    "loadUnder": "أقل من النصاب",
+    "grade": "الصف",
+    "legend": "العبء = حصص التدريس + حصص الإشراف/الإعفاء، ويجب أن يساوي النصاب. كل فصل يحتاج إلى العدد المطلوب من الحصص للقسم.",
+    "roles": {
+      "head": "رئيس القسم",
+      "wing_supervisor": "مشرف جناح",
+      "subject_supervisor": "مشرف مادة",
+      "school_assigned": "مكلف من المدرسة",
+      "studies": "دراسات",
+      "tech_coordinator": "منسق تقني",
+      "full_time": "متفرغ",
+      "assistant_supervisor": "مساعد مشرف"
+    }
   }
 }

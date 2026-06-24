@@ -72,7 +72,8 @@
       "operations": "Daily Operations",
       "insights": "Reports & Insights",
       "administration": "Administration"
-    }
+    },
+    "staffing": "Staffing Plan"
   },
   "auth": {
     "login": "Login",
@@ -253,5 +254,44 @@
     "label": "Language",
     "ar": "العربية",
     "en": "English"
+  },
+  "staffing": {
+    "title": "Staffing Plan",
+    "subtitle": "Target teacher & class budget plan",
+    "department": "Department",
+    "year": "Academic year",
+    "teacherCount": "Teachers",
+    "nisab": "Teaching load (Nisab)",
+    "periodCount": "Periods",
+    "classCount": "Classes",
+    "teacher": "Teacher",
+    "total": "Total periods",
+    "notes": "Notes",
+    "perClass": "Class periods",
+    "exempt": "Supervision / exempt periods",
+    "load": "Load",
+    "saved": "Saved",
+    "saveError": "Could not save",
+    "forbidden": "Not allowed",
+    "noDepartments": "No departments yet. Please add departments first.",
+    "noTeachers": "No teachers in this department yet.",
+    "coverageOk": "Complete",
+    "coverageOver": "Over",
+    "coverageUnder": "Under",
+    "loadOk": "Matches Nisab",
+    "loadOver": "Over Nisab",
+    "loadUnder": "Under Nisab",
+    "grade": "Grade",
+    "legend": "Load = teaching periods + supervision/exempt periods, and must equal the Nisab. Each class needs the departments required number of periods.",
+    "roles": {
+      "head": "Department Head",
+      "wing_supervisor": "Wing Supervisor",
+      "subject_supervisor": "Subject Supervisor",
+      "school_assigned": "School-assigned",
+      "studies": "Studies",
+      "tech_coordinator": "Tech Coordinator",
+      "full_time": "Full-time",
+      "assistant_supervisor": "Assistant Supervisor"
+    }
   }
 }

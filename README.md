@@ -58,6 +58,7 @@ Full step-by-step (storage buckets, Vercel/Netlify, backups): **[docs/17-deploym
 | **Students** (reference CRUD module) | `src/features/students`, `src/app/(app)/students` | ✅ Full CRUD |
 | Teachers, Classes, Subjects, Departments, Attendance, Grades | `src/features/*`, `src/app/(app)/*` | ✅ Functional |
 | Timetable, Curriculum, Islamic, Behavior, Observations, Activities | `src/app/(app)/*` | ✅ Data-backed |
+| **Staffing Plan** (خطة النصاب) — per-department teacher/class period sheet with live load & coverage checks | `src/features/staffing`, `src/app/(app)/staffing` | ✅ Editable |
 | Reports, Analytics, Communication, Finance, Users, Branding, Settings, Audit | `src/app/(app)/*` | ✅ Data-backed |
 | Design & architecture deliverables (1–20 + security + AI) | [`docs/`](docs) | 📚 Documented |
 | Unit + E2E tests | `src/lib/__tests__`, `e2e/` | ✅ Samples + strategy |
