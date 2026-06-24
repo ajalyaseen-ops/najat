@@ -35,6 +35,7 @@ export const NAVIGATION: NavGroup[] = [
       { key: "attendance", href: "/attendance", icon: "CalendarCheck", permission: "attendance:read" },
       { key: "grades", href: "/grades", icon: "ClipboardList", permission: "grades:read" },
       { key: "timetable", href: "/timetable", icon: "CalendarDays", permission: "timetable:read" },
+      { key: "staffing", href: "/staffing", icon: "LayoutGrid", permission: "staffing:read" },
       { key: "curriculum", href: "/curriculum", icon: "BookMarked", permission: "curriculum:read" },
       { key: "islamic", href: "/islamic", icon: "BookHeart", permission: "islamic:read" },
       { key: "behavior", href: "/behavior", icon: "Scale", permission: "behavior:read" },

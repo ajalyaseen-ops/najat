@@ -122,3 +122,452 @@ on conflict (number) do nothing;
 --           school_id = (select id from public.schools where slug = 'najat')
 --     where email = 'a.j.alyaseen@gmail.com';
 -- ============================================================
+
+-- ============================================================
+--  STAFFING PLAN SEED — 2026/2027 (idempotent)
+--  Adds the next academic year, Grades 6–9 with 8 classes each (32),
+--  department periods-per-class, the full teacher roster with roles, and a
+--  constraint-valid period distribution drawn from the school's plan PDF.
+--  Per-class cells are auto-balanced from each teacher's planned load and
+--  are fully adjustable in the app (Staffing Plan module).
+--  Requires 0007_staffing_plan.sql.
+-- ============================================================
+do $$
+declare
+  v_school uuid; v_year uuid; v_middle uuid; v_grade uuid;
+  v_classes uuid[] := array[]::uuid[];
+  v_dept uuid; v_staff uuid;
+  v_names text[]; v_teach int[]; v_tags text[];
+  v_ci int; v_need int; v_give int; v_rem int; k int;
+  v_staff_ids uuid[];
+  g record; i int;
+begin
+  select id into v_school from public.schools where slug = 'najat';
+  if v_school is null then raise notice 'najat school not found; skipping staffing seed'; return; end if;
+
+  -- Academic year 2026/2027 (not current; the plan targets next year)
+  select id into v_year from public.academic_years where school_id = v_school and name = '2026/2027';
+  if v_year is null then
+    insert into public.academic_years (school_id, name, start_date, end_date, is_current)
+    values (v_school, '2026/2027', '2026-09-01', '2027-06-30', false) returning id into v_year;
+  end if;
+
+  select id into v_middle from public.school_stages
+    where school_id = v_school and name_ar = 'المرحلة المتوسطة' limit 1;
+  if v_middle is null then
+    insert into public.school_stages (school_id, name_ar, name_en, sort_order)
+    values (v_school, 'المرحلة المتوسطة', 'Middle', 2) returning id into v_middle;
+  end if;
+
+  -- Grades 6..9 and 8 classes each, collected (in grade order) into v_classes
+  for g in select * from (values
+      ('الصف السادس','Grade 6',6,'6'),
+      ('الصف السابع','Grade 7',7,'7'),
+      ('الصف الثامن','Grade 8',8,'8'),
+      ('الصف التاسع','Grade 9',9,'9')
+    ) as t(ar,en,ord,pfx) loop
+    select id into v_grade from public.grade_levels
+      where school_id = v_school and name_ar = g.ar limit 1;
+    if v_grade is null then
+      insert into public.grade_levels (school_id, stage_id, name_ar, name_en, sort_order)
+      values (v_school, v_middle, g.ar, g.en, g.ord) returning id into v_grade;
+    end if;
+    for i in 1..8 loop
+      select id into v_staff from public.classes
+        where school_id = v_school and academic_year_id = v_year and name = g.pfx || '/' || i limit 1;
+      if v_staff is null then
+        insert into public.classes (school_id, academic_year_id, grade_level_id, name, capacity)
+        values (v_school, v_year, v_grade, g.pfx || '/' || i, 42) returning id into v_staff;
+      end if;
+      v_classes := array_append(v_classes, v_staff);
+    end loop;
+  end loop;
+
+  -- ---- الدراسات الإسلامية (periods/class = 4) ----
+  select id into v_dept from public.departments where school_id = v_school and name_ar = 'الدراسات الإسلامية' limit 1;
+  if v_dept is not null then
+    update public.departments set periods_per_class = 4 where id = v_dept;
+    v_names := array['عبدالله جاسم الياسين','حسن سعودي حسن','جعفر أحمد نمر','معلم التربية الإسلامية ٤','معلم التربية الإسلامية ٥','معلم التربية الإسلامية ٦','معلم التربية الإسلامية ٧','معلم التربية الإسلامية ٨'];
+    v_teach := array[2,18,18,18,18,18,18,18];
+    v_tags  := array['head','','','','','','',''];
+    v_staff_ids := array[]::uuid[];
+    for k in 1..array_length(v_names,1) loop
+      select id into v_staff from public.staff
+        where school_id = v_school and department_id = v_dept and name_ar = v_names[k] limit 1;
+      if v_staff is null then
+        insert into public.staff (school_id, name_ar, department_id, status, nisab, exempt_periods, role_tags)
+        values (v_school, v_names[k], v_dept, 'active', 18, greatest(0, 18 - v_teach[k]),
+                case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end)
+        returning id into v_staff;
+      else
+        update public.staff set nisab = 18, exempt_periods = greatest(0, 18 - v_teach[k]),
+               role_tags = case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end
+          where id = v_staff;
+      end if;
+      v_staff_ids := array_append(v_staff_ids, v_staff);
+    end loop;
+    -- distribute class-teaching across the 32 classes (split-fill: each class gets exactly 4)
+    v_ci := 1; v_need := 4;
+    for k in 1..array_length(v_staff_ids,1) loop
+      v_rem := v_teach[k];
+      while v_rem > 0 and v_ci <= array_length(v_classes,1) loop
+        v_give := least(v_need, v_rem);
+        insert into public.staffing_allocations (school_id, academic_year_id, department_id, staff_id, class_id, periods)
+        values (v_school, v_year, v_dept, v_staff_ids[k], v_classes[v_ci], v_give)
+        on conflict (academic_year_id, department_id, staff_id, class_id)
+        do update set periods = excluded.periods;
+        v_rem := v_rem - v_give; v_need := v_need - v_give;
+        if v_need = 0 then v_ci := v_ci + 1; v_need := 4; end if;
+      end loop;
+    end loop;
+    -- point the department head at the tagged head, if any
+    update public.departments set head_id = (
+      select s.id from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags) limit 1
+    ) where id = v_dept and exists (select 1 from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags));
+  end if;
+
+  -- ---- اللغة العربية (periods/class = 6) ----
+  select id into v_dept from public.departments where school_id = v_school and name_ar = 'اللغة العربية' limit 1;
+  if v_dept is not null then
+    update public.departments set periods_per_class = 6 where id = v_dept;
+    v_names := array['وجدي محمد','حسام سيد احمد','علي سعد','أسامة رزق','أحمد فرج','محمود عيد','عبد التواب صابر','فتح الرحمن محمد','محمد حمدان','رجب أحمد','عبدالله رفعت'];
+    v_teach := array[12,18,18,18,18,18,18,18,18,18,18];
+    v_tags  := array['head','','','','','','','','','',''];
+    v_staff_ids := array[]::uuid[];
+    for k in 1..array_length(v_names,1) loop
+      select id into v_staff from public.staff
+        where school_id = v_school and department_id = v_dept and name_ar = v_names[k] limit 1;
+      if v_staff is null then
+        insert into public.staff (school_id, name_ar, department_id, status, nisab, exempt_periods, role_tags)
+        values (v_school, v_names[k], v_dept, 'active', 18, greatest(0, 18 - v_teach[k]),
+                case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end)
+        returning id into v_staff;
+      else
+        update public.staff set nisab = 18, exempt_periods = greatest(0, 18 - v_teach[k]),
+               role_tags = case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end
+          where id = v_staff;
+      end if;
+      v_staff_ids := array_append(v_staff_ids, v_staff);
+    end loop;
+    -- distribute class-teaching across the 32 classes (split-fill: each class gets exactly 6)
+    v_ci := 1; v_need := 6;
+    for k in 1..array_length(v_staff_ids,1) loop
+      v_rem := v_teach[k];
+      while v_rem > 0 and v_ci <= array_length(v_classes,1) loop
+        v_give := least(v_need, v_rem);
+        insert into public.staffing_allocations (school_id, academic_year_id, department_id, staff_id, class_id, periods)
+        values (v_school, v_year, v_dept, v_staff_ids[k], v_classes[v_ci], v_give)
+        on conflict (academic_year_id, department_id, staff_id, class_id)
+        do update set periods = excluded.periods;
+        v_rem := v_rem - v_give; v_need := v_need - v_give;
+        if v_need = 0 then v_ci := v_ci + 1; v_need := 6; end if;
+      end loop;
+    end loop;
+    -- point the department head at the tagged head, if any
+    update public.departments set head_id = (
+      select s.id from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags) limit 1
+    ) where id = v_dept and exists (select 1 from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags));
+  end if;
+
+  -- ---- اللغة الإنجليزية (periods/class = 6) ----
+  select id into v_dept from public.departments where school_id = v_school and name_ar = 'اللغة الإنجليزية' limit 1;
+  if v_dept is not null then
+    update public.departments set periods_per_class = 6 where id = v_dept;
+    v_names := array['حماد بلتاجي','علي عبدالإله','محمد المعداوي','شريف قناوي','محمود سمير','حمادة عزت','طه ربيع','محمد جمال','محمود حمدي','رائد العتيبي','وليد زكي','معلم اللغة الإنجليزية ١٢'];
+    v_teach := array[12,18,12,12,18,18,18,18,18,12,18,18];
+    v_tags  := array['subject_supervisor,school_assigned','','wing_supervisor','wing_supervisor','','','','','','studies','',''];
+    v_staff_ids := array[]::uuid[];
+    for k in 1..array_length(v_names,1) loop
+      select id into v_staff from public.staff
+        where school_id = v_school and department_id = v_dept and name_ar = v_names[k] limit 1;
+      if v_staff is null then
+        insert into public.staff (school_id, name_ar, department_id, status, nisab, exempt_periods, role_tags)
+        values (v_school, v_names[k], v_dept, 'active', 18, greatest(0, 18 - v_teach[k]),
+                case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end)
+        returning id into v_staff;
+      else
+        update public.staff set nisab = 18, exempt_periods = greatest(0, 18 - v_teach[k]),
+               role_tags = case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end
+          where id = v_staff;
+      end if;
+      v_staff_ids := array_append(v_staff_ids, v_staff);
+    end loop;
+    -- distribute class-teaching across the 32 classes (split-fill: each class gets exactly 6)
+    v_ci := 1; v_need := 6;
+    for k in 1..array_length(v_staff_ids,1) loop
+      v_rem := v_teach[k];
+      while v_rem > 0 and v_ci <= array_length(v_classes,1) loop
+        v_give := least(v_need, v_rem);
+        insert into public.staffing_allocations (school_id, academic_year_id, department_id, staff_id, class_id, periods)
+        values (v_school, v_year, v_dept, v_staff_ids[k], v_classes[v_ci], v_give)
+        on conflict (academic_year_id, department_id, staff_id, class_id)
+        do update set periods = excluded.periods;
+        v_rem := v_rem - v_give; v_need := v_need - v_give;
+        if v_need = 0 then v_ci := v_ci + 1; v_need := 6; end if;
+      end loop;
+    end loop;
+    -- point the department head at the tagged head, if any
+    update public.departments set head_id = (
+      select s.id from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags) limit 1
+    ) where id = v_dept and exists (select 1 from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags));
+  end if;
+
+  -- ---- الرياضيات (periods/class = 5) ----
+  select id into v_dept from public.departments where school_id = v_school and name_ar = 'الرياضيات' limit 1;
+  if v_dept is not null then
+    update public.departments set periods_per_class = 5 where id = v_dept;
+    v_names := array['علاء المقدم','ممدوح أبو زيد','وائل محمود','السيد عاشور','هاني حلمي','وليد شوقي','كريم جلال','إبراهيم عبدالله','سعد محمد','مجاهد كامل','محمود قرشي','عبدالله منهل'];
+    v_teach := array[10,15,10,10,15,15,15,15,15,15,15,10];
+    v_tags  := array['head,studies','','wing_supervisor,studies','wing_supervisor,studies','','','','','','','','studies'];
+    v_staff_ids := array[]::uuid[];
+    for k in 1..array_length(v_names,1) loop
+      select id into v_staff from public.staff
+        where school_id = v_school and department_id = v_dept and name_ar = v_names[k] limit 1;
+      if v_staff is null then
+        insert into public.staff (school_id, name_ar, department_id, status, nisab, exempt_periods, role_tags)
+        values (v_school, v_names[k], v_dept, 'active', 18, greatest(0, 18 - v_teach[k]),
+                case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end)
+        returning id into v_staff;
+      else
+        update public.staff set nisab = 18, exempt_periods = greatest(0, 18 - v_teach[k]),
+               role_tags = case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end
+          where id = v_staff;
+      end if;
+      v_staff_ids := array_append(v_staff_ids, v_staff);
+    end loop;
+    -- distribute class-teaching across the 32 classes (split-fill: each class gets exactly 5)
+    v_ci := 1; v_need := 5;
+    for k in 1..array_length(v_staff_ids,1) loop
+      v_rem := v_teach[k];
+      while v_rem > 0 and v_ci <= array_length(v_classes,1) loop
+        v_give := least(v_need, v_rem);
+        insert into public.staffing_allocations (school_id, academic_year_id, department_id, staff_id, class_id, periods)
+        values (v_school, v_year, v_dept, v_staff_ids[k], v_classes[v_ci], v_give)
+        on conflict (academic_year_id, department_id, staff_id, class_id)
+        do update set periods = excluded.periods;
+        v_rem := v_rem - v_give; v_need := v_need - v_give;
+        if v_need = 0 then v_ci := v_ci + 1; v_need := 5; end if;
+      end loop;
+    end loop;
+    -- point the department head at the tagged head, if any
+    update public.departments set head_id = (
+      select s.id from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags) limit 1
+    ) where id = v_dept and exists (select 1 from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags));
+  end if;
+
+  -- ---- العلوم (periods/class = 4) ----
+  select id into v_dept from public.departments where school_id = v_school and name_ar = 'العلوم' limit 1;
+  if v_dept is not null then
+    update public.departments set periods_per_class = 4 where id = v_dept;
+    v_names := array['إسلام سعيد','إسماعيل حجازي','هيثم فتحي','محمد الفاخر','نبراس أحمد','موسى','هيثم عبد الرحمن'];
+    v_teach := array[12,20,20,20,20,20,16];
+    v_tags  := array['head','','','','','','assistant_supervisor'];
+    v_staff_ids := array[]::uuid[];
+    for k in 1..array_length(v_names,1) loop
+      select id into v_staff from public.staff
+        where school_id = v_school and department_id = v_dept and name_ar = v_names[k] limit 1;
+      if v_staff is null then
+        insert into public.staff (school_id, name_ar, department_id, status, nisab, exempt_periods, role_tags)
+        values (v_school, v_names[k], v_dept, 'active', 18, greatest(0, 18 - v_teach[k]),
+                case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end)
+        returning id into v_staff;
+      else
+        update public.staff set nisab = 18, exempt_periods = greatest(0, 18 - v_teach[k]),
+               role_tags = case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end
+          where id = v_staff;
+      end if;
+      v_staff_ids := array_append(v_staff_ids, v_staff);
+    end loop;
+    -- distribute class-teaching across the 32 classes (split-fill: each class gets exactly 4)
+    v_ci := 1; v_need := 4;
+    for k in 1..array_length(v_staff_ids,1) loop
+      v_rem := v_teach[k];
+      while v_rem > 0 and v_ci <= array_length(v_classes,1) loop
+        v_give := least(v_need, v_rem);
+        insert into public.staffing_allocations (school_id, academic_year_id, department_id, staff_id, class_id, periods)
+        values (v_school, v_year, v_dept, v_staff_ids[k], v_classes[v_ci], v_give)
+        on conflict (academic_year_id, department_id, staff_id, class_id)
+        do update set periods = excluded.periods;
+        v_rem := v_rem - v_give; v_need := v_need - v_give;
+        if v_need = 0 then v_ci := v_ci + 1; v_need := 4; end if;
+      end loop;
+    end loop;
+    -- point the department head at the tagged head, if any
+    update public.departments set head_id = (
+      select s.id from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags) limit 1
+    ) where id = v_dept and exists (select 1 from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags));
+  end if;
+
+  -- ---- الاجتماعيات (periods/class = 2) ----
+  select id into v_dept from public.departments where school_id = v_school and name_ar = 'الاجتماعيات' limit 1;
+  if v_dept is not null then
+    update public.departments set periods_per_class = 2 where id = v_dept;
+    v_names := array['عبد العظيم رمضان','خليل محمد','محمود عبد الغني','حمادة فتحي'];
+    v_teach := array[16,18,18,12];
+    v_tags  := array['subject_supervisor,school_assigned','','','wing_supervisor'];
+    v_staff_ids := array[]::uuid[];
+    for k in 1..array_length(v_names,1) loop
+      select id into v_staff from public.staff
+        where school_id = v_school and department_id = v_dept and name_ar = v_names[k] limit 1;
+      if v_staff is null then
+        insert into public.staff (school_id, name_ar, department_id, status, nisab, exempt_periods, role_tags)
+        values (v_school, v_names[k], v_dept, 'active', 18, greatest(0, 18 - v_teach[k]),
+                case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end)
+        returning id into v_staff;
+      else
+        update public.staff set nisab = 18, exempt_periods = greatest(0, 18 - v_teach[k]),
+               role_tags = case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end
+          where id = v_staff;
+      end if;
+      v_staff_ids := array_append(v_staff_ids, v_staff);
+    end loop;
+    -- distribute class-teaching across the 32 classes (split-fill: each class gets exactly 2)
+    v_ci := 1; v_need := 2;
+    for k in 1..array_length(v_staff_ids,1) loop
+      v_rem := v_teach[k];
+      while v_rem > 0 and v_ci <= array_length(v_classes,1) loop
+        v_give := least(v_need, v_rem);
+        insert into public.staffing_allocations (school_id, academic_year_id, department_id, staff_id, class_id, periods)
+        values (v_school, v_year, v_dept, v_staff_ids[k], v_classes[v_ci], v_give)
+        on conflict (academic_year_id, department_id, staff_id, class_id)
+        do update set periods = excluded.periods;
+        v_rem := v_rem - v_give; v_need := v_need - v_give;
+        if v_need = 0 then v_ci := v_ci + 1; v_need := 2; end if;
+      end loop;
+    end loop;
+    -- point the department head at the tagged head, if any
+    update public.departments set head_id = (
+      select s.id from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags) limit 1
+    ) where id = v_dept and exists (select 1 from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags));
+  end if;
+
+  -- ---- الحاسوب (periods/class = 2) ----
+  select id into v_dept from public.departments where school_id = v_school and name_ar = 'الحاسوب' limit 1;
+  if v_dept is not null then
+    update public.departments set periods_per_class = 2 where id = v_dept;
+    v_names := array['حمادة السعيد','عصام','خالد محمد','صالح عاطف'];
+    v_teach := array[14,18,14,18];
+    v_tags  := array['subject_supervisor,school_assigned,tech_coordinator','','studies',''];
+    v_staff_ids := array[]::uuid[];
+    for k in 1..array_length(v_names,1) loop
+      select id into v_staff from public.staff
+        where school_id = v_school and department_id = v_dept and name_ar = v_names[k] limit 1;
+      if v_staff is null then
+        insert into public.staff (school_id, name_ar, department_id, status, nisab, exempt_periods, role_tags)
+        values (v_school, v_names[k], v_dept, 'active', 18, greatest(0, 18 - v_teach[k]),
+                case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end)
+        returning id into v_staff;
+      else
+        update public.staff set nisab = 18, exempt_periods = greatest(0, 18 - v_teach[k]),
+               role_tags = case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end
+          where id = v_staff;
+      end if;
+      v_staff_ids := array_append(v_staff_ids, v_staff);
+    end loop;
+    -- distribute class-teaching across the 32 classes (split-fill: each class gets exactly 2)
+    v_ci := 1; v_need := 2;
+    for k in 1..array_length(v_staff_ids,1) loop
+      v_rem := v_teach[k];
+      while v_rem > 0 and v_ci <= array_length(v_classes,1) loop
+        v_give := least(v_need, v_rem);
+        insert into public.staffing_allocations (school_id, academic_year_id, department_id, staff_id, class_id, periods)
+        values (v_school, v_year, v_dept, v_staff_ids[k], v_classes[v_ci], v_give)
+        on conflict (academic_year_id, department_id, staff_id, class_id)
+        do update set periods = excluded.periods;
+        v_rem := v_rem - v_give; v_need := v_need - v_give;
+        if v_need = 0 then v_ci := v_ci + 1; v_need := 2; end if;
+      end loop;
+    end loop;
+    -- point the department head at the tagged head, if any
+    update public.departments set head_id = (
+      select s.id from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags) limit 1
+    ) where id = v_dept and exists (select 1 from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags));
+  end if;
+
+  -- ---- التربية الفنية (periods/class = 2) ----
+  select id into v_dept from public.departments where school_id = v_school and name_ar = 'التربية الفنية' limit 1;
+  if v_dept is not null then
+    update public.departments set periods_per_class = 2 where id = v_dept;
+    v_names := array['شريف عبد المجيد','سامح كمال','محمد مصطفى','إيهاب محمد'];
+    v_teach := array[14,18,18,14];
+    v_tags  := array['head','','','wing_supervisor'];
+    v_staff_ids := array[]::uuid[];
+    for k in 1..array_length(v_names,1) loop
+      select id into v_staff from public.staff
+        where school_id = v_school and department_id = v_dept and name_ar = v_names[k] limit 1;
+      if v_staff is null then
+        insert into public.staff (school_id, name_ar, department_id, status, nisab, exempt_periods, role_tags)
+        values (v_school, v_names[k], v_dept, 'active', 18, greatest(0, 18 - v_teach[k]),
+                case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end)
+        returning id into v_staff;
+      else
+        update public.staff set nisab = 18, exempt_periods = greatest(0, 18 - v_teach[k]),
+               role_tags = case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end
+          where id = v_staff;
+      end if;
+      v_staff_ids := array_append(v_staff_ids, v_staff);
+    end loop;
+    -- distribute class-teaching across the 32 classes (split-fill: each class gets exactly 2)
+    v_ci := 1; v_need := 2;
+    for k in 1..array_length(v_staff_ids,1) loop
+      v_rem := v_teach[k];
+      while v_rem > 0 and v_ci <= array_length(v_classes,1) loop
+        v_give := least(v_need, v_rem);
+        insert into public.staffing_allocations (school_id, academic_year_id, department_id, staff_id, class_id, periods)
+        values (v_school, v_year, v_dept, v_staff_ids[k], v_classes[v_ci], v_give)
+        on conflict (academic_year_id, department_id, staff_id, class_id)
+        do update set periods = excluded.periods;
+        v_rem := v_rem - v_give; v_need := v_need - v_give;
+        if v_need = 0 then v_ci := v_ci + 1; v_need := 2; end if;
+      end loop;
+    end loop;
+    -- point the department head at the tagged head, if any
+    update public.departments set head_id = (
+      select s.id from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags) limit 1
+    ) where id = v_dept and exists (select 1 from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags));
+  end if;
+
+  -- ---- التربية البدنية (periods/class = 2) ----
+  select id into v_dept from public.departments where school_id = v_school and name_ar = 'التربية البدنية' limit 1;
+  if v_dept is not null then
+    update public.departments set periods_per_class = 2 where id = v_dept;
+    v_names := array['سعد الحواف','محمد عيد الرومي','عبدالرحمن العازمي','خلف العازمي'];
+    v_teach := array[14,18,18,14];
+    v_tags  := array['subject_supervisor','','','studies'];
+    v_staff_ids := array[]::uuid[];
+    for k in 1..array_length(v_names,1) loop
+      select id into v_staff from public.staff
+        where school_id = v_school and department_id = v_dept and name_ar = v_names[k] limit 1;
+      if v_staff is null then
+        insert into public.staff (school_id, name_ar, department_id, status, nisab, exempt_periods, role_tags)
+        values (v_school, v_names[k], v_dept, 'active', 18, greatest(0, 18 - v_teach[k]),
+                case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end)
+        returning id into v_staff;
+      else
+        update public.staff set nisab = 18, exempt_periods = greatest(0, 18 - v_teach[k]),
+               role_tags = case when v_tags[k] = '' then '{}'::text[] else string_to_array(v_tags[k], ',') end
+          where id = v_staff;
+      end if;
+      v_staff_ids := array_append(v_staff_ids, v_staff);
+    end loop;
+    -- distribute class-teaching across the 32 classes (split-fill: each class gets exactly 2)
+    v_ci := 1; v_need := 2;
+    for k in 1..array_length(v_staff_ids,1) loop
+      v_rem := v_teach[k];
+      while v_rem > 0 and v_ci <= array_length(v_classes,1) loop
+        v_give := least(v_need, v_rem);
+        insert into public.staffing_allocations (school_id, academic_year_id, department_id, staff_id, class_id, periods)
+        values (v_school, v_year, v_dept, v_staff_ids[k], v_classes[v_ci], v_give)
+        on conflict (academic_year_id, department_id, staff_id, class_id)
+        do update set periods = excluded.periods;
+        v_rem := v_rem - v_give; v_need := v_need - v_give;
+        if v_need = 0 then v_ci := v_ci + 1; v_need := 2; end if;
+      end loop;
+    end loop;
+    -- point the department head at the tagged head, if any
+    update public.departments set head_id = (
+      select s.id from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags) limit 1
+    ) where id = v_dept and exists (select 1 from public.staff s where s.department_id = v_dept and 'head' = any(s.role_tags));
+  end if;
+
+end $$;
